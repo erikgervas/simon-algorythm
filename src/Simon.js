@@ -12,24 +12,24 @@ class BinaryText {
     }
 
     and(bin2) {
-        result = []
-        for (i = 1; i <= Math.min(this.length(), bin2.length()); i++) {
-            a = this.value().substr(-i, 1)
-            b = bin2.value().substr(-i, 1)
+        var result = []
+        for (var i = 1; i <= Math.min(this.length(), bin2.length()); i++) {
+            var a = this.value().substr(-i, 1)
+            var b = bin2.value().substr(-i, 1)
             result.unshift(('0b' + a) & ('0b' + b))
         }
         return new BinaryText(result.join(''))
     }
 
     or(bin2) {
-        result = []
-        carry = false
-        newBin = this._trimzeros(this.value())
+        var result = []
+        var carry = false
+        var newBin = this._trimzeros(this.value())
         bin2 = this._trimzeros(bin2.value())
-        for (i = 1; i <= Math.max(newBin.length, bin2.length); i++) {
-            a = newBin[newBin.length - i];
+        for (var i = 1; i <= Math.max(newBin.length, bin2.length); i++) {
+			var a = newBin[newBin.length - i];
             a = a === undefined ? '0' : a
-            b = bin2[bin2.length - i];
+            var b = bin2[bin2.length - i];
             b = b === undefined ? '0' : b
             if (!carry) {
                 if (a == '1' && b == '1') {
@@ -49,14 +49,14 @@ class BinaryText {
     }
 
     xor(bin2) {
-        result = []
-        carry = false
-        newBin = this._trimzeros(this.value())
+        var result = []
+        var carry = false
+        var newBin = this._trimzeros(this.value())
         bin2 = this._trimzeros(bin2.value())
-        for (i = 1; i <= Math.max(newBin.length, bin2.length); i++) {
-            a = newBin[newBin.length - i];
+        for (var i = 1; i <= Math.max(newBin.length, bin2.length); i++) {
+            var a = newBin[newBin.length - i];
             a = a === undefined ? '0' : a
-            b = bin2[bin2.length - i];
+            var b = bin2[bin2.length - i];
             b = b === undefined ? '0' : b
             result.unshift(a == b ? '0' : '1')
         }
@@ -68,20 +68,20 @@ class BinaryText {
     }
 
     shr(places) {
-        newBin = this.value().substr(0, this.length() - places)
+        var newBin = this.value().substr(0, this.length() - places)
         if (newBin === '')
             newBin = '0'
         return new BinaryText(newBin)
     }
 
     hexRepresentation() {
-        result = ''
-        for (i = 1; i <= Math.floor(this.length() / 4); i++) {
-            h = this.value().substr(-i * 4, 4)
+        var result = ''
+        for (var i = 1; i <= Math.floor(this.length() / 4); i++) {
+            var h = this.value().substr(-i * 4, 4)
             result = parseInt(h, 2).toString(16) + result
         }
-        last = ''
-        for (i = 0; i < this.length() - Math.floor(this.length() / 4) * 4; i++)
+        var last = ''
+        for (var i = 0; i < this.length() - Math.floor(this.length() / 4) * 4; i++)
             last += this.value()[i]
         if (last !== '')
             result = parseInt(last, 2).toString(16) + result
@@ -112,6 +112,7 @@ class BinaryText {
     }
 
     _fromHexa(hex) {
+		var b;
         return hex.substr(2).split('').map(function(h) {
             b = parseInt(h, 16).toString(2);
             b = '0'.repeat(4 - b.length) + b;
