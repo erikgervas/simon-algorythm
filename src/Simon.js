@@ -121,13 +121,11 @@ class BinaryText {
     }
 }
 
-function SimonCipher(key, key_size, block_size, mode = 'ECB', binaryText, encryption = true) {
+function SimonCipher(key, key_size, block_size, _mode = 'ECB', initial_vector = new BinaryText(0)) {
     //key: BinaryText 
     //key_size: Int 
     //block_size: Int 
-    //mode: String 
-    //binaryText: BinaryText
-    //encrypt: Boolean
+    //_mode: String 
 
     // Z Arrays (stored bit reversed for easier usage)
     z0 = new BinaryText('01100111000011010100100010111110110011100001101010010001011111');
@@ -156,18 +154,19 @@ function SimonCipher(key, key_size, block_size, mode = 'ECB', binaryText, encryp
     __valid_setups[128][192] = [69, z3];
     __valid_setups[128][256] = [72, z4];
 
-    __valid_modes = ['ECB'];
+    __valid_modes = ['ECB','CBC'];
 
-
+    var word_size, mod_mask, k_reg, k_schedule, mode
+    var iv, iv_upper, iv_lower
+    
     // Setup block/word size
     try {
         possible_setups = __valid_setups[block_size]
         block_size = block_size
-        word_size = block_size >> 1
+        this.word_size = block_size >> 1
     } catch (ex) {
         console.log('Invalid block size!')
     }
-
     // Setup Number of Rounds, Z Sequence, and Key Size
     try {
         [rounds, zseq] = possible_setups[key_size]
@@ -177,13 +176,12 @@ function SimonCipher(key, key_size, block_size, mode = 'ECB', binaryText, encryp
     }
 
     // Create Properly Sized bit mask for truncating addition and left shift outputs
-    mod_mask = new BinaryText('1'.repeat(word_size))
-
+    this.mod_mask = new BinaryText('1'.repeat(this.word_size))
 
     // Check Cipher Mode
     try {
-        position = __valid_modes.indexOf(mode)
-        mode = __valid_modes[position]
+        position = __valid_modes.indexOf(_mode)
+        this.mode = __valid_modes[position]
     } catch (ex) {
         console.log('Invalid cipher mode!')
         console.log('Please use one of the following block cipher modes:', __valid_modes)
@@ -194,177 +192,183 @@ function SimonCipher(key, key_size, block_size, mode = 'ECB', binaryText, encryp
         key = key.and(new BinaryText('1'.repeat(key_size)))
     } catch (ex) {
         console.log('Invalid Key Value!')
-        console.log('Please Provide Key as int')
+        console.log('Please Provide Key as BinaryText')
+    }
+    
+    // Parse the given IV and truncate it to the block length
+    try {
+        this.iv = initial_vector.and(new BinaryText('1'.repeat(block_size)))
+        this.iv_upper = this.iv.shr(this.word_size)
+        this.iv_lower = this.iv.and(this.mod_mask)
+    }
+    catch(ex) {
+        console.log('Invalid IV Value!')
+        console.log('Please Provide IV as BinaryText')
     }
 
     // Pre-compile key schedule
-    m = Math.floor(key_size / word_size)
-    key_schedule = []
+    m = Math.floor(key_size / this.word_size)
+    this.key_schedule = []
 
     // Create list of subwords from encryption key
     k_init = []
     for (x = 0; x < m; x++) {
-        k_init[x] = key.shr(word_size * (m - 1 - x)).and(mod_mask)
+        k_init[x] = key.shr(this.word_size * (m - 1 - x)).and(this.mod_mask)
     }
 
 
-    k_reg = k_init // Use queue to manage key subwords
+    this.k_reg = k_init // Use queue to manage key subwords
 
-    round_constant = mod_mask.xor(new BinaryText(3)) // Round Constant is 0xFFFF..FC
+    round_constant = this.mod_mask.xor(new BinaryText(3)) // Round Constant is 0xFFFF..FC
 
     // Generate all round keys
     for (x = 0; x < rounds; x++) {
 
-        rs_3 = ((k_reg[0].shl(word_size - 3)).or(k_reg[0].shr(3))).and(mod_mask)
+        rs_3 = ((this.k_reg[0].shl(this.word_size - 3)).or(this.k_reg[0].shr(3))).and(this.mod_mask)
 
         if (m == 4) {
-            rs_3 = rs_3.xor(k_reg[2])
+            rs_3 = rs_3.xor(this.k_reg[2])
         }
 
-        rs_1 = rs_3.shl(word_size - 1).or(rs_3.shr(1)).and(mod_mask)
+        rs_1 = rs_3.shl(this.word_size - 1).or(rs_3.shr(1)).and(this.mod_mask)
 
         c_z = zseq.shr(x % 62).and(new BinaryText(1)).xor(round_constant)
 
-        new_k = c_z.xor(rs_1).xor(rs_3).xor(k_reg[m - 1])
+        new_k = c_z.xor(rs_1).xor(rs_3).xor(this.k_reg[m - 1])
 
-        key_schedule.push(k_reg.pop())
-        k_reg.unshift(new_k)
-    }
-    if (encryption)
-        return encrypt(binaryText)
-    return decrypt(binaryText)
-
-    function encrypt(plaintext) {
-
-        //Process new plaintext into ciphertext based on current cipher object setup
-        //param plaintext
-        var a, b
-
-        try {
-            b = plaintext.shr(word_size).and(mod_mask)
-            a = plaintext.and(mod_mask)
-        } catch (ex) {
-            console.log('Invalid plaintext!')
-            console.log('Please provide plaintext as int')
-        }
-
-        if (mode == 'ECB') {
-            [b, a] = encrypt_function(b, a)
-        }
-        ciphertext = b.shl(word_size).or(a)
-
-        return ciphertext
+        this.key_schedule.push(this.k_reg.pop())
+        this.k_reg.unshift(new_k)
     }
 
-    function decrypt(ciphertext) {
+}
 
-        //Process new ciphertest into plaintext based on current cipher object setup
-        //param ciphertext
-        var a, b
+SimonCipher.prototype.encrypt = function (plaintext) {
+    //Process new plaintext into ciphertext based on current cipher object setup
+    //param plaintext
+    var a, b
 
-        try {
-            b = ciphertext.shr(word_size).and(mod_mask)
-            a = ciphertext.and(mod_mask)
-        } catch (ex) {
-            console.log('Invalid ciphertext!')
-            console.log('Please provide ciphertext as int')
-        }
-
-        if (mode == 'ECB') {
-            [a, b] = decrypt_function(a, b)
-        }
-
-        plaintext = b.shl(word_size).or(a)
-
-        return plaintext
+    try {
+        b = plaintext.shr(this.word_size).and(this.mod_mask)
+        a = plaintext.and(this.mod_mask)
+    } catch (ex) {
+        console.log('Invalid plaintext!')
+        console.log('Please provide plaintext as BinaryText')
     }
 
-    function encrypt_function(upper_word, lower_word) {
+    if (this.mode == 'ECB') {
+        [b, a] = this.encrypt_function(b, a)
+    }
+    else if (this.mode == 'CBC') {
+        b = b.xor(this.iv_upper)
+        a = a.xor(this.iv_lower);
+        [b, a] = this.encrypt_function(b, a)
 
-        //Completes appropriate number of Simon Fiestel function to encrypt provided words
-        //Round number is based off of number of elements in key schedule
+        this.iv_upper = b
+        this.iv_lower = a
+        this.iv = b.shl(this.word_size).or(a)
+    }
+    ciphertext = b.shl(this.word_size).or(a)
 
-        x = upper_word
-        y = lower_word
+    return ciphertext
+}
 
-        // Run Encryption Steps For Appropriate Number of Rounds
-        for (k in key_schedule) {
-            // Generate all circular shifts
-            ls_1_x = x.shr(word_size - 1).or(x.shl(1)).and(mod_mask)
-            ls_8_x = x.shr(word_size - 8).or(x.shl(8)).and(mod_mask)
-            ls_2_x = x.shr(word_size - 2).or(x.shl(2)).and(mod_mask)
+SimonCipher.prototype.encrypt_function = function (upper_word, lower_word) {
 
-            // XOR Chain
-            xor_1 = ls_1_x.and(ls_8_x).xor(y)
-            xor_2 = xor_1.xor(ls_2_x)
-            y = x
-            x = key_schedule[k].xor(xor_2)
+    //Completes appropriate number of Simon Fiestel function to encrypt provided words
+    //Round number is based off of number of elements in key schedule
 
-        }
-        return [x, y]
+    x = upper_word
+    y = lower_word
+
+    // Run Encryption Steps For Appropriate Number of Rounds
+    for (var k in this.key_schedule) {
+        // Generate all circular shifts
+        ls_1_x = x.shr(this.word_size - 1).or(x.shl(1)).and(this.mod_mask)
+        ls_8_x = x.shr(this.word_size - 8).or(x.shl(8)).and(this.mod_mask)
+        ls_2_x = x.shr(this.word_size - 2).or(x.shl(2)).and(this.mod_mask)
+
+        // XOR Chain
+        xor_1 = ls_1_x.and(ls_8_x).xor(y)
+        xor_2 = xor_1.xor(ls_2_x)
+        y = x
+        x = this.key_schedule[k].xor(xor_2)
+
+    }
+    return [x, y]
+}
+
+SimonCipher.prototype.decrypt = function (ciphertext) {
+
+    //Process new ciphertest into plaintext based on current cipher object setup
+    //param ciphertext
+    var a, b
+
+    try {
+        b = ciphertext.shr(this.word_size).and(this.mod_mask)
+        a = ciphertext.and(this.mod_mask)
+    } catch (ex) {
+        console.log('Invalid ciphertext!')
+        console.log('Please provide ciphertext as BinaryText')
     }
 
-    function decrypt_function(upper_word, lower_word) {
-
-        //Completes appropriate number of Simon Fiestel function to decrypt provided words
-        //Round number is based off of number of elements in key schedule
-
-        x = upper_word
-        y = lower_word
-
-        // Run Encryption Steps For Appropriate Number of Rounds
-        for (k in key_schedule) {
-            // Generate all circular shifts
-            ls_1_x = x.shr(word_size - 1).or(x.shl(1)).and(mod_mask)
-            ls_8_x = x.shr(word_size - 8).or(x.shl(8)).and(mod_mask)
-            ls_2_x = x.shr(word_size - 2).or(x.shl(2)).and(mod_mask)
-
-            // XOR Chain
-            xor_1 = ls_1_x.and(ls_8_x).xor(y)
-            xor_2 = xor_1.xor(ls_2_x)
-            y = x
-            x = key_schedule[key_schedule.length - k - 1].xor(xor_2)
-        }
-        return [x, y]
+    if (this.mode == 'ECB') {
+        [a, b] = this.decrypt_function(a, b)
     }
+    else if (this.mode == 'CBC') {
+        [a, b] = this.decrypt_function(a, b)
+        b = b.xor(this.iv_upper)
+        a = a.xor(this.iv_lower)
+
+        this.iv_upper = b
+        this.iv_lower = a
+        this.iv = b.shl(this.word_size).or(a)
+    }
+    plaintext = b.shl(this.word_size).or(a)
+
+    return plaintext
+}
+
+SimonCipher.prototype.decrypt_function = function (upper_word, lower_word) {
+
+    //Completes appropriate number of Simon Fiestel function to decrypt provided words
+    //Round number is based off of number of elements in key schedule
+
+    x = upper_word
+    y = lower_word
+
+    // Run Encryption Steps For Appropriate Number of Rounds
+    for (var k in this.key_schedule) {
+        // Generate all circular shifts
+        ls_1_x = x.shr(this.word_size - 1).or(x.shl(1)).and(this.mod_mask)
+        ls_8_x = x.shr(this.word_size - 8).or(x.shl(8)).and(this.mod_mask)
+        ls_2_x = x.shr(this.word_size - 2).or(x.shl(2)).and(this.mod_mask)
+
+        // XOR Chain
+        xor_1 = ls_1_x.and(ls_8_x).xor(y)
+        xor_2 = xor_1.xor(ls_2_x)
+        y = x
+        x = this.key_schedule[this.key_schedule.length - k - 1].xor(xor_2)
+    }
+    return [x, y]
 }
 
 //Examples shown here were taken from the following PDF at page 43: https://eprint.iacr.org/2013/404.pdf
 
-//SimonCipher(KEY, KEY_SIZE, BLOCK_SIZE, MODE, PLAINTEXT/CIPHERTEXT, ENCRYPTION/DECRYPTION) OUTPUT: A BinaryText object
+//                        KEY,       KEY_SIZE,WORD_SIZE,MODE, PLAINTEXT,    EXPECTED ENCRYPTION
+test_cases_encryption = [['0x1918111009080100', 64,32, 'ECB', '0x65656877', 'c69be9bb'],
+						['0x1211100a0908020100', 72, 48, 'ECB', '0x6120676e696c', 'dae5ac292cac'],
+						['0x1a19181211100a0908020100', 96, 48, 'ECB', '0x72696320646e', '6e06a5acf156'],
+						['0x131211100b0a090803020100', 96, 64, 'ECB', '0x6f7220676e696c63', '5ca2e27f111a8fc8'],
+						['0x1b1a1918131211100b0a090803020100', 128, 64, 'ECB', '0x656b696c20646e75', '44c8fc20b9dfa07a'],
+						['0x0d0c0b0a0908050403020100', 96, 96, 'ECB', '0x2072616c6c69702065687420', '602807a462b469063d8ff082'],
+						['0x1514131211100d0c0b0a0908050403020100', 144, 96, 'ECB', '0x74616874207473756420666f', 'ecad1c6c451e3f59c5db1ae9'],
+						['0x0f0e0d0c0b0a09080706050403020100', 128, 128, 'ECB', '0x63736564207372656c6c657661727420', '49681b1e1e54fe3f65aa832af84e0bbc'],
+						['0x17161514131211100f0e0d0c0b0a09080706050403020100', 192, 128, 'ECB', '0x206572656874206e6568772065626972', 'c4ac61effcdc0d4f6c9c8d6e2597b85b'],
+						['0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100', 256, 128, 'ECB', '0x74206e69206d6f6f6d69732061207369', '8d2b5579afc8a3a03bf72a87efe7b868']]
 
-w = SimonCipher(new BinaryText('0x1918111009080100'), 64, 32, 'ECB', new BinaryText('0x65656877'))
-console.log("ECB Mode - Encrypted: " + w.hexRepresentation() + " Expected: c69be9bb")
-
-w = SimonCipher(new BinaryText('0x1211100a0908020100'), 72, 48, 'ECB', new BinaryText('0x6120676e696c'))
-console.log("ECB Mode - Encrypted: " + w.hexRepresentation() + " Expected: dae5ac292cac")
-
-w = SimonCipher(new BinaryText('0x1a19181211100a0908020100'), 96, 48, 'ECB', new BinaryText('0x72696320646e'))
-console.log("ECB Mode - Encrypted: " + w.hexRepresentation() + " Expected: 6e06a5acf156")
-
-w = SimonCipher(new BinaryText('0x131211100b0a090803020100'), 96, 64, 'ECB', new BinaryText('0x6f7220676e696c63'))
-console.log("ECB Mode - Encrypted: " + w.hexRepresentation() + " Expected: 5ca2e27f111a8fc8")
-
-w = SimonCipher(new BinaryText('0x1b1a1918131211100b0a090803020100'), 128, 64, 'ECB', new BinaryText('0x656b696c20646e75'))
-console.log("ECB Mode - Encrypted: " + w.hexRepresentation() + " Expected: 44c8fc20b9dfa07a")
-
-w = SimonCipher(new BinaryText('0x0d0c0b0a0908050403020100'), 96, 96, 'ECB', new BinaryText('0x2072616c6c69702065687420'))
-console.log("ECB Mode - Encrypted: " + w.hexRepresentation() + " Expected: 602807a462b469063d8ff082")
-
-w = SimonCipher(new BinaryText('0x1514131211100d0c0b0a0908050403020100'), 144, 96, 'ECB', new BinaryText('0x74616874207473756420666f'))
-console.log("ECB Mode - Encrypted: " + w.hexRepresentation() + " Expected: ecad1c6c451e3f59c5db1ae9")
-
-w = SimonCipher(new BinaryText('0x0f0e0d0c0b0a09080706050403020100'), 128, 128, 'ECB', new BinaryText('0x63736564207372656c6c657661727420'))
-console.log("ECB Mode - Encrypted: " + w.hexRepresentation() + " Expected: 49681b1e1e54fe3f65aa832af84e0bbc")
-
-w = SimonCipher(new BinaryText('0x17161514131211100f0e0d0c0b0a09080706050403020100'), 192, 128, 'ECB', new BinaryText('0x206572656874206e6568772065626972'))
-console.log("ECB Mode - Encrypted: " + w.hexRepresentation() + " Expected: c4ac61effcdc0d4f6c9c8d6e2597b85b")
-
-w = SimonCipher(new BinaryText('0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100'), 256, 128, 'ECB', new BinaryText('0x74206e69206d6f6f6d69732061207369'))
-console.log("ECB Mode - Encrypted: " + w.hexRepresentation() + " Expected: 8d2b5579afc8a3a03bf72a87efe7b868")
-
-w = SimonCipher(new BinaryText('0x1918111009080100'), 64, 32, 'ECB', new BinaryText('0xc69be9bb'), false)
-console.log("ECB Mode - Decrypted: " + w.hexRepresentation() + " Expected: 65656877")
-
-w = SimonCipher(new BinaryText('0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100'), 256, 128, 'ECB', new BinaryText('0x8d2b5579afc8a3a03bf72a87efe7b868'), false)
-console.log("ECB Mode - Decrypted: " + w.hexRepresentation() + " Expected: 74206e69206d6f6f6d69732061207369")
+for (var i in test_cases_encryption) {
+	config = test_cases_encryption[i]
+	simon = new SimonCipher(new BinaryText(config[0]), config[1], config[2], config[3])
+	result = simon.encrypt(new BinaryText(config[4]))
+	console.log("Input text: "+config[4]+" Encryption result: "+result.hexRepresentation()+" Expected result: "+config[5])
+}
