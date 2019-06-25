@@ -104,26 +104,4 @@
 		}
 	}
 
-    function convertToImageData(bitmap) {
-        canvas = document.createElement("canvas");
-        var ctx = canvas.getContext("2d");
-        var Width = bitmap.infoheader.biWidth;
-        var Height = bitmap.infoheader.biHeight;
-        var imageData = ctx.createImageData(
-            Width, Height);
-        var data = imageData.data;
-        var bmpdata = bitmap.pixels;
-        var stride = bitmap.stride;
-        for (var y = 0; y < Height; ++y) {
-            for (var x = 0; x < Width; ++x) {
-                var index1 = (x + Width * (Height - y)) * 4;
-                var index2 = x * 3 + stride * y;
-                data[index1] = bmpdata[index2 + 2] ^ 0b10101010;
-                data[index1 + 1] = bmpdata[index2 + 1] ^ 0b01010101;
-                data[index1 + 2] = bmpdata[index2] ^ 0b00110011;
-                data[index1 + 3] = 255;
-            }
-        }
-        return imageData;
-    }
 </script>
