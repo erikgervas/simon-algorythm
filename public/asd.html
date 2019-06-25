@@ -72,24 +72,14 @@
 		r = imageData.data[n*4];
 		g = imageData.data[n*4+1];
 		b = imageData.data[n*4+2];
-		return RGBToHex(r,g,b)
+		return RGBToHex(r.toString(16),g.toString(16),b.toString(16))
 	}
 	
 	function encrypt() {
 		simon = new SimonCipher(new BinaryText('0x1211100a0908020100'), 72, 48, 'ECB')
 		//Si se quiere probar el modo de operación CBC solo hay que cambiar ECB por CBC, se va a notar mucho
 		//la diferencia ya que CBC toma en cuenta los resultados de la encriptación anterior, haciéndolo mejor para encriptar
-		/*
-		array = imageData.data;
-		k = array.length;
-		for (i = 0; i < k/4; i++) {
-			r = array[i*4];
-			g = array[i*4+1];
-			b = array[i*4+2];
-			hex = RGBToHex(r.toString(16),g.toString(16),b.toString(16))
-			console.log("Pixel #"+i+": R="+r+" G="+g+" B="+b+" Hex="+hex)
-		}
-		*/
+
 		width = encryptedCanvas.width;
 		height = encryptedCanvas.height;
 		
