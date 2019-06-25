@@ -1,0 +1,139 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>Simon Cipher</title>
+	<script src="../src/Simon.js"></script> 
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+
+<body>
+    <input type="file" id="input">
+	<hr/>
+	<b>Original</b><br/>
+    <canvas id="originalCanvas" width="128" height="128" style="border:1px solid #000000;">
+        This text is displayed if your browser does not support HTML5 Canvas.
+    </canvas>
+	<br/>acá se eligen los parámetros de encriptación
+	<hr/>
+	<b>Encrypted</b><br/>
+    <canvas id="encryptedCanvas" width="128" height="128" style="border:1px solid #000000;">
+        This text is displayed if your browser does not support HTML5 Canvas.
+    </canvas>
+	</br>acá se muestra encriptado luego de darle okay a encriptar arriba, que supongo que va a ser un botón
+	</br>por ahora muestra una encriptación default
+</body>
+
+</html>
+
+<script language="javascript">
+    var originalCanvas = document.getElementById('originalCanvas');
+    var ctx1 = originalCanvas.getContext('2d');
+    var encryptedCanvas = document.getElementById('encryptedCanvas');
+    var ctx2 = encryptedCanvas.getContext('2d');
+	
+	var imageData = null
+	
+    var inputElement = document.getElementById("input");
+    inputElement.addEventListener("change",
+        handleFiles, false);
+
+    function handleFiles(e) {
+        var file = e.target.files[0];
+		var img = new Image();
+		  img.onload = function () {
+							originalCanvas.width = img.width; 
+							originalCanvas.height = img.height; 
+							encryptedCanvas.width = img.width;
+							encryptedCanvas.height = img.height;
+							ctx1.drawImage(this, 0, 0); 
+							processimage()
+						};
+		  img.onerror = function() {
+							console.error("The provided file couldn't be loaded as an Image media");
+						};
+		  img.src = URL.createObjectURL(file);
+    }
+
+    function processimage() {
+		imageData = ctx1.getImageData(0, 0, encryptedCanvas.width, encryptedCanvas.height);
+        console.log(imageData)
+		encrypt()
+    }
+	
+	function RGBToHex(r,g,b) {
+		r = '0'.repeat(2 - r.length) + r;
+		g = '0'.repeat(2 - g.length) + g;
+		b = '0'.repeat(2 - b.length) + b;
+		return r+g+b;
+	}
+	
+	function getPixelAsHex(n) {
+		r = imageData.data[n*4];
+		g = imageData.data[n*4+1];
+		b = imageData.data[n*4+2];
+		return RGBToHex(r,g,b)
+	}
+	
+	function encrypt() {
+		simon = new SimonCipher(new BinaryText('0x1211100a0908020100'), 72, 48, 'ECB')
+		//Si se quiere probar el modo de operación CBC solo hay que cambiar ECB por CBC, se va a notar mucho
+		//la diferencia ya que CBC toma en cuenta los resultados de la encriptación anterior, haciéndolo mejor para encriptar
+		/*
+		array = imageData.data;
+		k = array.length;
+		for (i = 0; i < k/4; i++) {
+			r = array[i*4];
+			g = array[i*4+1];
+			b = array[i*4+2];
+			hex = RGBToHex(r.toString(16),g.toString(16),b.toString(16))
+			console.log("Pixel #"+i+": R="+r+" G="+g+" B="+b+" Hex="+hex)
+		}
+		*/
+		width = encryptedCanvas.width;
+		height = encryptedCanvas.height;
+		
+		var x,y
+		
+		for (y=0; y < height; y++) {
+			for (x=0; x < width/2; x++) {
+			
+				pixel1 = getPixelAsHex(x*2+y*width);
+				pixel2 = getPixelAsHex(x*2+y*width+1);
+				result = simon.encrypt(new BinaryText('0x'+pixel1+pixel2))
+				
+				//draw pixels in the meanwhile...
+				hex = result.hexRepresentation();
+				ctx2.fillStyle = "#"+hex.substr(0,6);
+				ctx2.fillRect(x*2, y, 1, 1)
+				ctx2.fillStyle = "#"+hex.substr(6,6);
+				ctx2.fillRect(x*2+1, y, 1, 1)
+				
+				console.log("Pixels "+(x*2+y*width)+"-"+(x*2+y*width+1)+" encryption: "+result.hexRepresentation())
+			}
+		}
+	}
+
+    function convertToImageData(bitmap) {
+        canvas = document.createElement("canvas");
+        var ctx = canvas.getContext("2d");
+        var Width = bitmap.infoheader.biWidth;
+        var Height = bitmap.infoheader.biHeight;
+        var imageData = ctx.createImageData(
+            Width, Height);
+        var data = imageData.data;
+        var bmpdata = bitmap.pixels;
+        var stride = bitmap.stride;
+        for (var y = 0; y < Height; ++y) {
+            for (var x = 0; x < Width; ++x) {
+                var index1 = (x + Width * (Height - y)) * 4;
+                var index2 = x * 3 + stride * y;
+                data[index1] = bmpdata[index2 + 2] ^ 0b10101010;
+                data[index1 + 1] = bmpdata[index2 + 1] ^ 0b01010101;
+                data[index1 + 2] = bmpdata[index2] ^ 0b00110011;
+                data[index1 + 3] = 255;
+            }
+        }
+        return imageData;
+    }
+</script>
