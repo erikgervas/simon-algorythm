@@ -24,8 +24,8 @@ class BinaryText {
     or(bin2) {
         var result = []
         var carry = false
-        var newBin = this._trimzeros(this.value())
-        bin2 = this._trimzeros(bin2.value())
+		var newBin = this.value()
+		bin2 = bin2.value()
         for (var i = 1; i <= Math.max(newBin.length, bin2.length); i++) {
 			var a = newBin[newBin.length - i];
             a = a === undefined ? '0' : a
@@ -39,20 +39,21 @@ class BinaryText {
             } else {
                 if (a == '0' && b == '0') {
                     carry = false
-                }
+                } 
                 result.unshift(a == b ? '1' : '0')
             }
         }
-        if (carry)
-            result.unshift('1')
+        if (carry) {
+				result.unshift('1')
+		}
         return new BinaryText(result.join(''))
     }
 
     xor(bin2) {
         var result = []
         var carry = false
-        var newBin = this._trimzeros(this.value())
-        bin2 = this._trimzeros(bin2.value())
+        var newBin = this.value()
+        bin2 = bin2.value()
         for (var i = 1; i <= Math.max(newBin.length, bin2.length); i++) {
             var a = newBin[newBin.length - i];
             a = a === undefined ? '0' : a
@@ -98,13 +99,6 @@ class BinaryText {
     }
     length() {
         return this.bin.length
-    }
-
-    _trimzeros(bin) {
-        while (bin.charAt(0) === '0' && bin.length > 1) {
-            bin = bin.substr(1);
-        }
-        return bin
     }
 
     _fromNumber(bin) {
@@ -301,7 +295,7 @@ SimonCipher.prototype.decrypt = function (ciphertext) {
 
     //Process new ciphertest into plaintext based on current cipher object setup
     //param ciphertext
-    var a, b
+    var a, b, old_a, old_b
 
     try {
         b = ciphertext.shr(this.word_size).and(this.mod_mask)
@@ -315,15 +309,18 @@ SimonCipher.prototype.decrypt = function (ciphertext) {
         [a, b] = this.decrypt_function(a, b)
     }
     else if (this.mode == 'CBC') {
+		old_a = a 
+		old_b = b;
         [a, b] = this.decrypt_function(a, b)
         b = b.xor(this.iv_upper)
         a = a.xor(this.iv_lower)
-
-        this.iv_upper = b
-        this.iv_lower = a
-        this.iv = b.shl(this.word_size).or(a)
+		
+        this.iv_upper = old_b
+        this.iv_lower = old_a
+        this.iv = old_b.shl(this.word_size).or(old_a)
     }
     plaintext = b.shl(this.word_size).or(a)
+	
 
     return plaintext
 }
