@@ -1,26 +1,36 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { Component } from 'react';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+export class App extends Component {
 
-export default App;
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+
+  onChange = (event) => {
+    let image = new Image();
+    let canvas = this.refs.originalImage;
+    if (event.target.files && event.target.files[ 0 ]) {
+      image.src = URL.createObjectURL(event.target.files[ 0 ]);
+    }
+
+    image.onload = () => {
+      canvas.width = image.width;
+      canvas.height = image.height;
+      canvas.getContext("2d").drawImage(image, 0, 0);
+    }
+  };
+
+  render() {
+    return (
+      <div>
+        <input type="file"
+               onChange={ this.onChange }
+               alt="Upload image"/>
+        <br/>
+        <canvas ref="originalImage"/>
+      </div>
+    )
+  }
+}
