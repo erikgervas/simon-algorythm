@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Utils from './Utils';
 import './App.css';
 
 export class App extends Component {
@@ -22,6 +23,13 @@ export class App extends Component {
     }
   };
 
+  handleClick = () => {
+    console.log("Encrypting..");
+    let originalCanvas = this.refs.originalCanvas;
+    let encryptedCanvas = this.refs.encryptedImage;
+    Utils.encrypt(originalCanvas, encryptedCanvas);
+  };
+
   render() {
     return (
       <div>
@@ -30,6 +38,11 @@ export class App extends Component {
                alt="Upload image"/>
         <br/>
         <canvas ref="originalImage"/>
+        <button onClick={ this.handleClick }>
+          Encrypt Image
+        </button>
+        <br/>
+        <canvas ref="encryptedImage"/>
       </div>
     )
   }
