@@ -11,7 +11,7 @@ export class App extends Component {
 
   onChange = (event) => {
     let image = new Image();
-    let canvas = this.refs.originalImage;
+    let canvas = this.refs.originalCanvas;
     if (event.target.files && event.target.files[ 0 ]) {
       image.src = URL.createObjectURL(event.target.files[ 0 ]);
     }
@@ -37,7 +37,7 @@ export class App extends Component {
                onChange={ this.onChange }
                alt="Upload image"/>
         <br/>
-        <canvas ref="originalImage"/>
+        <canvas ref="originalCanvas"/>
         <button onClick={ this.handleClick }>
           Encrypt Image
         </button>

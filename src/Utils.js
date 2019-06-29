@@ -30,7 +30,6 @@ export default {
     let simon = new SimonCipher(new BinaryText('0x1211100a0908020100'), 72, 48, 'ECB');
     let width = originalCanvas.width;
     let height = originalCanvas.height;
-    console.log("w=" + width + " h=" + heigth);
     encryptedCanvas.width = width;
     encryptedCanvas.height = height;
     let ctx2 = encryptedCanvas.getContext("2d");
