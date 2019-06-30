@@ -11,6 +11,7 @@ import FormLabel from "@material-ui/core/FormLabel";
 import RadioGroup from "@material-ui/core/RadioGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Radio from "@material-ui/core/Radio";
+import { SaveButton } from "./SaveButton";
 
 export class App extends Component {
 
@@ -45,8 +46,11 @@ export class App extends Component {
     });
   };
 
-  handleModeChange = (event) => {
-    this.setState({ blockMode: event.target.value });
+  saveEncryptedImage = async () => {
+    let encryptedCanvas = this.refs.encryptedCanvas;
+    let blob = await new Promise(resolve=>encryptedCanvas.toBlob(resolve));
+    let url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
   };
 
   render() {
@@ -68,7 +72,7 @@ export class App extends Component {
               <RadioGroup
                 aria-label="Block mode"
                 value={ this.state.blockMode }
-                onChange={ this.handleModeChange }
+                onChange={ (event) => this.setState({ blockMode: event.target.value }) }
               >
                 <FormControlLabel value="ECB" control={ <Radio/> } label="ECB"/>
                 <FormControlLabel value="CBC" control={ <Radio/> } label="CBC"/>
@@ -88,6 +92,7 @@ export class App extends Component {
             <FileInput onChange={ this.onFileChange } message="Ingresar archivo a descifrar..."/>
             <div className="canvas">
               <canvas ref="encryptedCanvas"/>
+              <SaveButton onClick={ this.saveEncryptedImage }/>
             </div>
             <ActionButton onClick={ this.handleClick } message="Descifrar"/>
           </div>
