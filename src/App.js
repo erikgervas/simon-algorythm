@@ -1,19 +1,22 @@
 import React, { Component } from 'react';
 import Utils from './Utils';
+import Files from 'react-files'
 import './App.css';
+import { Header } from "./Header";
+import { FileInput } from "./FileInput";
+import { CallToActionButton } from "./CallToActionButton";
 
 export class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {};
   }
 
-  onChange = (event) => {
+  onFileChange = (files) => {
     let image = new Image();
     let canvas = this.refs.originalCanvas;
-    if (event.target.files && event.target.files[ 0 ]) {
-      image.src = URL.createObjectURL(event.target.files[ 0 ]);
+    if (files[ 0 ]) {
+      image.src = URL.createObjectURL(files[ 0 ]);
     }
 
     image.onload = () => {
@@ -26,23 +29,30 @@ export class App extends Component {
   handleClick = () => {
     console.log("Encrypting..");
     let originalCanvas = this.refs.originalCanvas;
-    let encryptedCanvas = this.refs.encryptedImage;
+    let encryptedCanvas = this.refs.encryptedCanvas;
     Utils.encrypt(originalCanvas, encryptedCanvas);
   };
 
   render() {
     return (
-      <div>
-        <input type="file"
-               onChange={ this.onChange }
-               alt="Upload image"/>
-        <br/>
-        <canvas ref="originalCanvas"/>
-        <button onClick={ this.handleClick }>
-          Encrypt Image
-        </button>
-        <br/>
-        <canvas ref="encryptedImage"/>
+      <div className="app">
+        <Header/>
+        <div className="main">
+          <div className="container">
+            <div className="box">
+              <FileInput onChange={ this.onFileChange } message="Ingresar archivo a cifrar..."/>
+              <canvas ref="originalCanvas"/>
+              <CallToActionButton onClick={ this.handleClick } message="Cifrar"/>
+            </div>
+          </div>
+          <div className="container">
+            <div className="box">
+              <FileInput onChange={ this.onFileChange } message="Ingresar archivo a descifrar..."/>
+              <canvas ref="encryptedCanvas"/>
+              <CallToActionButton onClick={ this.handleClick } message="Descifrar"/>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
