@@ -20,9 +20,8 @@ export class App extends Component {
     this.state = { key: '0x1211100a0908020100', blockMode: 'ECB', loading: false };
   }
 
-  onFileChange = (files) => {
+  onFileChange = (files, canvas) => {
     let image = new Image();
-    let canvas = this.refs.originalCanvas;
     if (files[ 0 ]) {
       image.src = URL.createObjectURL(files[ 0 ]);
     }
@@ -90,14 +89,14 @@ export class App extends Component {
         </div>
         <div className="main mt10">
           <div className="box">
-            <FileInput onChange={ this.onFileChange } message="Ingresar archivo a cifrar..."/>
+            <FileInput onChange={ (files) => this.onFileChange(files, this.refs.originalCanvas) } message="Ingresar archivo a cifrar..."/>
             <div className="canvas">
               <canvas ref="originalCanvas"/>
             </div>
             <ActionButton onClick={ this.handleEncryptClick } message="Cifrar"/>
           </div>
           <div className="box">
-            <FileInput onChange={ this.onFileChange } message="Ingresar archivo a descifrar..."/>
+            <FileInput onChange={ (files) => this.onFileChange(files, this.refs.encryptedCanvas) } message="Ingresar archivo a descifrar..."/>
             <div className="canvas">
               <canvas ref="encryptedCanvas"/>
             </div>
