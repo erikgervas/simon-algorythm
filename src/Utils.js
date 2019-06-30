@@ -25,15 +25,15 @@ export default {
     return this.RGBToHex(r.toString(16), g.toString(16), b.toString(16));
   },
 
-  encrypt(originalCanvas, encryptedCanvas, key, blockMode, loading) {
-    console.log("Encriptando...");
+  scanCanvasAndDo(srcCanvas, dstCanvas, fnc , key, blockMode, loading) {
+
     let simon = new SimonCipher(new BinaryText(key), 72, 48, blockMode);
-    let width = originalCanvas.width;
-    let height = originalCanvas.height;
-    encryptedCanvas.width = width;
-    encryptedCanvas.height = height;
-    let ctx2 = encryptedCanvas.getContext("2d");
-    let imageData = this.getImageData(originalCanvas);
+    let width = srcCanvas.width;
+    let height = srcCanvas.height;
+    dstCanvas.width = width;
+    dstCanvas.height = height;
+    let ctx2 = dstCanvas.getContext("2d");
+    let imageData = this.getImageData(srcCanvas);
     let x, y;
 
     for (y = 0; y < height; y++) {
@@ -41,7 +41,7 @@ export default {
 
         let pixel1 = this.getPixelAsHex(imageData, x * 2 + y * width);
         let pixel2 = this.getPixelAsHex(imageData, x * 2 + y * width + 1);
-        let result = simon.encrypt(new BinaryText('0x' + pixel1 + pixel2));
+        let result = simon[fnc](new BinaryText('0x' + pixel1 + pixel2));
 
         //draw pixels in the meanwhile...
         let hex = result.hexRepresentation();
@@ -50,7 +50,6 @@ export default {
         ctx2.fillStyle = "#" + hex.substr(6, 6);
         ctx2.fillRect(x * 2 + 1, y, 1, 1);
 
-        //console.log("Pixels "+(x*2+y*width)+"-"+(x*2+y*width+1)+" encryption: "+result.hexRepresentation());
       }
     }
     loading();

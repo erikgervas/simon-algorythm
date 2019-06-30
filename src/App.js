@@ -38,11 +38,19 @@ export class App extends Component {
     this.setState({ loading: false })
   };
 
-  handleClick = () => {
+  handleEncryptClick = () => {
     let originalCanvas = this.refs.originalCanvas;
     let encryptedCanvas = this.refs.encryptedCanvas;
     this.setState({ loading: true }, () => {
-      Utils.encrypt(originalCanvas, encryptedCanvas, this.state.key, this.state.blockMode, this.finishedLoading);
+      Utils.scanCanvasAndDo(originalCanvas, encryptedCanvas, "encrypt", this.state.key, this.state.blockMode, this.finishedLoading);
+    });
+  };
+
+  handleDecryptClick = () => {
+    let originalCanvas = this.refs.originalCanvas;
+    let encryptedCanvas = this.refs.encryptedCanvas;
+    this.setState({ loading: true }, () => {
+      Utils.scanCanvasAndDo(encryptedCanvas, originalCanvas, "decrypt", this.state.key, this.state.blockMode, this.finishedLoading);
     });
   };
 
@@ -86,15 +94,16 @@ export class App extends Component {
             <div className="canvas">
               <canvas ref="originalCanvas"/>
             </div>
-            <ActionButton onClick={ this.handleClick } message="Cifrar"/>
+            <ActionButton onClick={ this.handleEncryptClick } message="Cifrar"/>
           </div>
           <div className="box">
             <FileInput onChange={ this.onFileChange } message="Ingresar archivo a descifrar..."/>
             <div className="canvas">
               <canvas ref="encryptedCanvas"/>
-              <SaveButton onClick={ this.saveEncryptedImage }/>
             </div>
-            <ActionButton onClick={ this.handleClick } message="Descifrar"/>
+            <SaveButton onClick={ this.saveEncryptedImage }/>
+            <br/>
+            <ActionButton onClick={ this.handleDecryptClick } message="Descifrar"/>
           </div>
         </div>
         <Ocultable visible={ this.state.loading }>

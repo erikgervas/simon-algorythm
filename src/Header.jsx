@@ -2,5 +2,5 @@ import React from "react";
 
 export const Header = () => (
   <div className="header">
-    <h1>Criptografia</h1>
+    <h1>TP Criptografía - Algoritmo Simon</h1>
   </div> );

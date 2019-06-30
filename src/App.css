@@ -28,6 +28,7 @@
   align-items: center;
   border: 2px solid;
   width: 30%;
+  justify-content: space-between;
 }
 
 .box div:first-child{ /*Esto es re malefico*/
