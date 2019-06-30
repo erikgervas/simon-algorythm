@@ -25,9 +25,9 @@ export default {
     return this.RGBToHex(r.toString(16), g.toString(16), b.toString(16));
   },
 
-  encrypt(originalCanvas, encryptedCanvas) {
+  encrypt(originalCanvas, encryptedCanvas, key, blockMode, loading) {
     console.log("Encriptando...");
-    let simon = new SimonCipher(new BinaryText('0x1211100a0908020100'), 72, 48, 'ECB');
+    let simon = new SimonCipher(new BinaryText(key), 72, 48, blockMode);
     let width = originalCanvas.width;
     let height = originalCanvas.height;
     encryptedCanvas.width = width;
@@ -53,5 +53,6 @@ export default {
         //console.log("Pixels "+(x*2+y*width)+"-"+(x*2+y*width+1)+" encryption: "+result.hexRepresentation());
       }
     }
+    loading();
   },
 }

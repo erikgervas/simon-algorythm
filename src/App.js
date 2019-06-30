@@ -4,11 +4,19 @@ import './App.css';
 import { Header } from "./Header";
 import { FileInput } from "./FileInput";
 import { ActionButton } from "./ActionButton";
+import Ocultable from "./Ocultable";
+import { Loading } from "./Loading";
+import FormControl from "@material-ui/core/FormControl";
+import FormLabel from "@material-ui/core/FormLabel";
+import RadioGroup from "@material-ui/core/RadioGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Radio from "@material-ui/core/Radio";
 
 export class App extends Component {
 
   constructor(props) {
     super(props);
+    this.state = { key: '0x1211100a0908020100', blockMode: 'ECB', loading: false };
   }
 
   onFileChange = (files) => {
@@ -25,37 +33,68 @@ export class App extends Component {
     }
   };
 
+  finishedLoading = () => {
+    this.setState({ loading: false })
+  };
+
   handleClick = () => {
-    console.log("Encrypting..");
     let originalCanvas = this.refs.originalCanvas;
     let encryptedCanvas = this.refs.encryptedCanvas;
-    Utils.encrypt(originalCanvas, encryptedCanvas);
+    this.setState({ loading: true }, () => {
+      Utils.encrypt(originalCanvas, encryptedCanvas, this.state.key, this.state.blockMode, this.finishedLoading);
+    });
+  };
+
+  handleModeChange = (event) => {
+    this.setState({ blockMode: event.target.value });
   };
 
   render() {
     return (
       <div className="app">
         <Header/>
-        <div className="main">
-          <div className="container">
-            <div className="box">
-              <FileInput onChange={ this.onFileChange } message="Ingresar archivo a cifrar..."/>
-              <div className="canvas">
-                <canvas ref="originalCanvas"/>
-              </div>
-              <ActionButton onClick={ this.handleClick } message="Cifrar"/>
+        <div className="container mt5">
+          <div className="key-mode-input">
+            <h4>Ingresar clave y modo de encriptación de bloque:</h4>
+            <div>
+              <span>Clave en hexa:&ensp;</span>
+              <input value={ this.state.key }
+                     onChange={ (e) => this.setState({ key: e.target.value }) }
+                     className="key-input"/>
             </div>
-          </div>
-          <div className="container">
-            <div className="box">
-              <FileInput onChange={ this.onFileChange } message="Ingresar archivo a descifrar..."/>
-              <div className="canvas">
-                <canvas ref="encryptedCanvas"/>
-              </div>
-              <ActionButton onClick={ this.handleClick } message="Descifrar"/>
-            </div>
+            <br/>
+            <FormControl component="fieldset">
+              <FormLabel component="legend">Elegir modo:</FormLabel>
+              <RadioGroup
+                aria-label="Block mode"
+                value={ this.state.blockMode }
+                onChange={ this.handleModeChange }
+              >
+                <FormControlLabel value="ECB" control={ <Radio/> } label="ECB"/>
+                <FormControlLabel value="CBC" control={ <Radio/> } label="CBC"/>
+              </RadioGroup>
+            </FormControl>
           </div>
         </div>
+        <div className="main mt10">
+          <div className="box">
+            <FileInput onChange={ this.onFileChange } message="Ingresar archivo a cifrar..."/>
+            <div className="canvas">
+              <canvas ref="originalCanvas"/>
+            </div>
+            <ActionButton onClick={ this.handleClick } message="Cifrar"/>
+          </div>
+          <div className="box">
+            <FileInput onChange={ this.onFileChange } message="Ingresar archivo a descifrar..."/>
+            <div className="canvas">
+              <canvas ref="encryptedCanvas"/>
+            </div>
+            <ActionButton onClick={ this.handleClick } message="Descifrar"/>
+          </div>
+        </div>
+        <Ocultable visible={ this.state.loading }>
+          <Loading/>
+        </Ocultable>
       </div>
     )
   }

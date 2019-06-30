@@ -16,20 +16,18 @@
 }
 
 .container {
-  margin-top: 20vh;
   display: flex;
   justify-content: center;
-  flex-grow: 1;
 }
 
 .box {
-  padding: 2rem;
-  width: 80%;
+  padding: 1.5rem;
   background-color: whitesmoke;
   display: flex;
   flex-direction: column;
   align-items: center;
   border: 2px solid;
+  width: 30%;
 }
 
 .box div:first-child{ /*Esto es re malefico*/
@@ -39,6 +37,7 @@
 .main {
   display: flex;
   flex-direction: row;
+  justify-content: space-around;
 }
 
 .files-dropzone {
@@ -51,4 +50,25 @@
 
 .canvas {
   width: fit-content;
+}
+
+.key-mode-input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid;
+  background-color: whitesmoke;
+  width: 50%;
+}
+
+.mt5 {
+  margin-top: 5vh;
+}
+
+.mt10 {
+  margin-top: 10vh;
+}
+
+.key-input {
+  font-size: 2vh;
 }

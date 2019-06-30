@@ -5,7 +5,7 @@ export class BinaryText {
   constructor(bin) {
     if (typeof bin == 'number')
       this.bin = this._fromNumber(bin)
-    else if (bin.substr(0, 2) == '0x')
+    else if (bin.substr(0, 2) === '0x')
       this.bin = this._fromHexa(bin)
     else
       this.bin = bin;
@@ -52,7 +52,6 @@ export class BinaryText {
 
   xor(bin2) {
     var result = [];
-    var carry = false;
     var newBin = this.value();
     bin2 = bin2.value();
     for (var i = 1; i <= Math.max(newBin.length, bin2.length); i++) {
