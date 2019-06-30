@@ -12,17 +12,17 @@ export class BinaryText {
   }
 
   and(bin2) {
-    var result = [];
+    var result = '';
     for (var i = 1; i <= Math.min(this.length(), bin2.length()); i++) {
       const a = this.value().substr(-i, 1);
       const b = bin2.value().substr(-i, 1);
-      result.unshift(( '0b' + a ) & ( '0b' + b ))
+	  result = (a==='1'?b:'0') + result;
     }
-    return new BinaryText(result.join(''))
+    return new BinaryText(result)
   }
 
   or(bin2) {
-    var result = [];
+    var result = '';
     var carry = false;
     var newBin = this.value();
     bin2 = bin2.value();
@@ -36,22 +36,23 @@ export class BinaryText {
         if (a === '1' && b === '1') {
           carry = true
         }
-        result.unshift(a !== b ? '1' : '0')
+		result = (a !== b ? '1' : '0') + result;
       } else {
         if (a === '0' && b === '0') {
           carry = false
         }
-        result.unshift(a === b ? '1' : '0')
+		result = (a === b ? '1' : '0') + result;
       }
     }
     if (carry) {
-      result.unshift('1')
+      result = '1' + result;
     }
-    return new BinaryText(result.join(''))
+    return new BinaryText(result)
   }
 
   xor(bin2) {
-    var result = [];
+    var result = '';
+    var carry = false;
     var newBin = this.value();
     bin2 = bin2.value();
     for (var i = 1; i <= Math.max(newBin.length, bin2.length); i++) {
@@ -59,9 +60,9 @@ export class BinaryText {
       a = a === undefined ? '0' : a;
       let b = bin2[ bin2.length - i ];
       b = b === undefined ? '0' : b;
-      result.unshift(a === b ? '0' : '1')
+	  result = (a === b ? '0' : '1') + result;
     }
-    return new BinaryText(result.join(''))
+    return new BinaryText(result)
   }
 
   shl(places) {
@@ -69,9 +70,7 @@ export class BinaryText {
   }
 
   shr(places) {
-    let newBin = this.value().substr(0, this.length() - places);
-    if (newBin === '') newBin = '0';
-    return new BinaryText(newBin)
+    return new BinaryText(this.value().substr(0, this.length() - places))
   }
 
   hexRepresentation() {
