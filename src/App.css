@@ -16,14 +16,24 @@
 }
 
 .container {
+  margin-top: 20vh;
   display: flex;
+  justify-content: center;
   flex-grow: 1;
-  padding: 8rem 4rem;
 }
 
 .box {
+  padding: 2rem;
+  width: 80%;
   background-color: whitesmoke;
-  border: black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid;
+}
+
+.box div:first-child{ /*Esto es re malefico*/
+  width: 50%;
 }
 
 .main {
@@ -32,9 +42,13 @@
 }
 
 .files-dropzone {
-  background-color: green;
+  background-color: #7e93bf;
   border-radius: 5px;
   display: flex;
   justify-content: center;
   cursor: pointer;
+}
+
+.canvas {
+  width: fit-content;
 }

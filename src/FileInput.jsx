@@ -1,5 +1,6 @@
 import React from "react";
 import Files from "react-files";
+import 'font-awesome/css/font-awesome.css';
 
 export const FileInput = ({ onChange, message }) => (
   <Files
@@ -11,6 +12,6 @@ export const FileInput = ({ onChange, message }) => (
     minFileSize={ 0 }
     clickable
   >
-    { message }
+    <p><i className="fa fa-angle-down"/>&ensp;{ message }</p>
   </Files>
 );

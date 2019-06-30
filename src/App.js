@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import Utils from './Utils';
-import Files from 'react-files'
 import './App.css';
 import { Header } from "./Header";
 import { FileInput } from "./FileInput";
-import { CallToActionButton } from "./CallToActionButton";
+import { ActionButton } from "./ActionButton";
 
 export class App extends Component {
 
@@ -41,15 +40,19 @@ export class App extends Component {
           <div className="container">
             <div className="box">
               <FileInput onChange={ this.onFileChange } message="Ingresar archivo a cifrar..."/>
-              <canvas ref="originalCanvas"/>
-              <CallToActionButton onClick={ this.handleClick } message="Cifrar"/>
+              <div className="canvas">
+                <canvas ref="originalCanvas"/>
+              </div>
+              <ActionButton onClick={ this.handleClick } message="Cifrar"/>
             </div>
           </div>
           <div className="container">
             <div className="box">
               <FileInput onChange={ this.onFileChange } message="Ingresar archivo a descifrar..."/>
-              <canvas ref="encryptedCanvas"/>
-              <CallToActionButton onClick={ this.handleClick } message="Descifrar"/>
+              <div className="canvas">
+                <canvas ref="encryptedCanvas"/>
+              </div>
+              <ActionButton onClick={ this.handleClick } message="Descifrar"/>
             </div>
           </div>
         </div>
