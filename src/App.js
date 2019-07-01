@@ -22,10 +22,13 @@ export class App extends Component {
 
   onFileChange = (files, canvas) => {
     let image = new Image();
-    if (files[ 0 ]) {
-      image.src = URL.createObjectURL(files[ 0 ]);
+    if (files[ files.length - 1 ]) {
+      image.src = URL.createObjectURL(files[ files.length - 1 ]);
     }
 
+	Utils.cleanCanvas(this.refs.originalCanvas);
+	Utils.cleanCanvas(this.refs.encryptedCanvas);
+	
     image.onload = () => {
       canvas.width = image.width;
       canvas.height = image.height;
@@ -54,10 +57,22 @@ export class App extends Component {
   };
 
   saveEncryptedImage = async () => {
+	var link = document.createElement('a');
+	var encryptedCanvas = this.refs.encryptedCanvas;
+	link.innerHTML = 'Download image';
+	link.addEventListener('click', function(ev) {
+		link.href = encryptedCanvas.toDataURL('image/bmp');
+		link.download = "encrypted.bmp";
+		}, false);
+	document.body.appendChild(link);
+	link.click();
+	link.parentNode.removeChild(link);
+	  /*
     let encryptedCanvas = this.refs.encryptedCanvas;
     let blob = await new Promise(resolve=>encryptedCanvas.toBlob(resolve));
     let url = URL.createObjectURL(blob);
     window.open(url, '_blank');
+	*/
   };
 
   render() {

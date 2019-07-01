@@ -54,4 +54,8 @@ export default {
     }
     loading();
   },
+  
+  cleanCanvas(canvas) {
+	  canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+  },
 }

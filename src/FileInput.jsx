@@ -7,7 +7,6 @@ export const FileInput = ({ onChange, message }) => (
     className='files-dropzone'
     onChange={ onChange }
     accepts={ [ '.bmp' ] }
-    maxFiles={ 1 }
     maxFileSize={ 10000000 }
     minFileSize={ 0 }
     clickable
