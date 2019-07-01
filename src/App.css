@@ -31,10 +31,6 @@
   justify-content: space-between;
 }
 
-.box div:first-child{ /*Esto es re malefico*/
-  width: 50%;
-}
-
 .main {
   display: flex;
   flex-direction: row;
@@ -42,6 +38,7 @@
 }
 
 .files-dropzone {
+  padding: 0.3rem 0.7rem;
   background-color: #7e93bf;
   border-radius: 5px;
   display: flex;
@@ -66,10 +63,6 @@
   margin-top: 5vh;
 }
 
-.mt10 {
-  margin-top: 10vh;
-}
-
 .key-input {
-  font-size: 2vh;
+  font-size: 1.2rem;
 }

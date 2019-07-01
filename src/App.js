@@ -26,9 +26,9 @@ export class App extends Component {
       image.src = URL.createObjectURL(files[ files.length - 1 ]);
     }
 
-	Utils.cleanCanvas(this.refs.originalCanvas);
-	Utils.cleanCanvas(this.refs.encryptedCanvas);
-	
+    Utils.cleanCanvas(this.refs.originalCanvas);
+    Utils.cleanCanvas(this.refs.encryptedCanvas);
+
     image.onload = () => {
       canvas.width = image.width;
       canvas.height = image.height;
@@ -37,6 +37,7 @@ export class App extends Component {
   };
 
   finishedLoading = () => {
+    debugger;
     this.setState({ loading: false })
   };
 
@@ -44,7 +45,9 @@ export class App extends Component {
     let originalCanvas = this.refs.originalCanvas;
     let encryptedCanvas = this.refs.encryptedCanvas;
     this.setState({ loading: true }, () => {
-      Utils.scanCanvasAndDo(originalCanvas, encryptedCanvas, "encrypt", this.state.key, this.state.blockMode, this.finishedLoading);
+      window.setTimeout(() => {
+        Utils.scanCanvasAndDo(originalCanvas, encryptedCanvas, "encrypt", this.state.key, this.state.blockMode, this.finishedLoading);
+      }, 500);
     });
   };
 
@@ -52,27 +55,29 @@ export class App extends Component {
     let originalCanvas = this.refs.originalCanvas;
     let encryptedCanvas = this.refs.encryptedCanvas;
     this.setState({ loading: true }, () => {
-      Utils.scanCanvasAndDo(encryptedCanvas, originalCanvas, "decrypt", this.state.key, this.state.blockMode, this.finishedLoading);
+      window.setTimeout(() => {
+        Utils.scanCanvasAndDo(encryptedCanvas, originalCanvas, "decrypt", this.state.key, this.state.blockMode, this.finishedLoading);
+      }, 500);
     });
   };
 
-  saveEncryptedImage = async () => {
-	var link = document.createElement('a');
-	var encryptedCanvas = this.refs.encryptedCanvas;
-	link.innerHTML = 'Download image';
-	link.addEventListener('click', function(ev) {
-		link.href = encryptedCanvas.toDataURL('image/bmp');
-		link.download = "encrypted.bmp";
-		}, false);
-	document.body.appendChild(link);
-	link.click();
-	link.parentNode.removeChild(link);
-	  /*
+  saveEncryptedImage = () => {
+    let link = document.createElement('a');
+    const encryptedCanvas = this.refs.encryptedCanvas;
+    link.innerHTML = 'Download image';
+    link.addEventListener('click', function (ev) {
+      link.href = encryptedCanvas.toDataURL('image/bmp');
+      link.download = "encrypted.bmp";
+    }, false);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+    /*
     let encryptedCanvas = this.refs.encryptedCanvas;
     let blob = await new Promise(resolve=>encryptedCanvas.toBlob(resolve));
     let url = URL.createObjectURL(blob);
     window.open(url, '_blank');
-	*/
+  */
   };
 
   render() {
@@ -102,16 +107,21 @@ export class App extends Component {
             </FormControl>
           </div>
         </div>
-        <div className="main mt10">
+        <div className="main mt5">
           <div className="box">
-            <FileInput onChange={ (files) => this.onFileChange(files, this.refs.originalCanvas) } message="Ingresar archivo a cifrar..."/>
+            <FileInput onChange={ (files) => this.onFileChange(files, this.refs.originalCanvas) }
+                       message="Ingresar archivo a cifrar..."/>
             <div className="canvas">
               <canvas ref="originalCanvas"/>
             </div>
             <ActionButton onClick={ this.handleEncryptClick } message="Cifrar"/>
           </div>
+          <Ocultable visible={ this.state.loading }>
+            <Loading/>
+          </Ocultable>
           <div className="box">
-            <FileInput onChange={ (files) => this.onFileChange(files, this.refs.encryptedCanvas) } message="Ingresar archivo a descifrar..."/>
+            <FileInput onChange={ (files) => this.onFileChange(files, this.refs.encryptedCanvas) }
+                       message="Ingresar archivo a descifrar..."/>
             <div className="canvas">
               <canvas ref="encryptedCanvas"/>
             </div>
@@ -120,9 +130,6 @@ export class App extends Component {
             <ActionButton onClick={ this.handleDecryptClick } message="Descifrar"/>
           </div>
         </div>
-        <Ocultable visible={ this.state.loading }>
-          <Loading/>
-        </Ocultable>
       </div>
     )
   }
