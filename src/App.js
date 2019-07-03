@@ -61,37 +61,39 @@ export class App extends Component {
     });
   };
 
+  saveImage = async (canvas, name) => {
+	let link = document.createElement('a');
+	link.innerHTML = 'Download image';
+	link.addEventListener('click', function (ev) {
+	link.href = canvas.toDataURL();
+	link.download = name+".png";
+	}, false);
+	document.body.appendChild(link);
+	link.click();
+	link.parentNode.removeChild(link);
+  }
+  
+  saveOriginalImage = () => {
+	  this.saveImage(this.refs.originalCanvas, "original");
+  }
+  
   saveEncryptedImage = () => {
-    let link = document.createElement('a');
-    const encryptedCanvas = this.refs.encryptedCanvas;
-    link.innerHTML = 'Download image';
-    link.addEventListener('click', function (ev) {
-      link.href = encryptedCanvas.toDataURL('image/bmp');
-      link.download = "encrypted.bmp";
-    }, false);
-    document.body.appendChild(link);
-    link.click();
-    link.parentNode.removeChild(link);
-    /*
-    let encryptedCanvas = this.refs.encryptedCanvas;
-    let blob = await new Promise(resolve=>encryptedCanvas.toBlob(resolve));
-    let url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-  */
-  };
-
+	  this.saveImage(this.refs.encryptedCanvas, "encrypted");
+  }
+  
   render() {
     return (
       <div className="app">
         <Header/>
         <div className="container mt5">
           <div className="key-mode-input">
+			<b>Simon72/48 con IV nulo</b>
             <h4>Ingresar clave y modo de encriptación de bloque:</h4>
             <div>
               <span>Clave en hexa:&ensp;</span>
               <input value={ this.state.key }
                      onChange={ (e) => this.setState({ key: e.target.value }) }
-                     className="key-input"/>
+                     className="key-input box__dragndrop"/>
             </div>
             <br/>
             <FormControl component="fieldset">
@@ -114,6 +116,8 @@ export class App extends Component {
             <div className="canvas">
               <canvas ref="originalCanvas"/>
             </div>
+            <SaveButton onClick={ this.saveOriginalImage }/>
+            <br/>
             <ActionButton onClick={ this.handleEncryptClick } message="Cifrar"/>
           </div>
           <Ocultable visible={ this.state.loading }>
