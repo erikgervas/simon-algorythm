@@ -33,7 +33,7 @@ export function SimonCipher(key, key_size, block_size, _mode = 'ECB', initial_ve
   __valid_setups[ 128 ][ 192 ] = [ 69, z3 ];
   __valid_setups[ 128 ][ 256 ] = [ 72, z4 ];
 
-  let __valid_modes = [ 'ECB', 'CBC' ];
+  let __valid_modes = [ 'ECB', 'CBC', 'PCBC' ];
   let possible_setups;
 
   let word_size, mod_mask, k_reg, k_schedule, mode;
@@ -121,7 +121,7 @@ export function SimonCipher(key, key_size, block_size, _mode = 'ECB', initial_ve
 SimonCipher.prototype.encrypt = function (plaintext) {
   //Process new plaintext into ciphertext based on current cipher object setup
   //param plaintext
-  let a, b;
+  let a, b, old_a, old_b;
 
   try {
     b = plaintext.shr(this.word_size).and(this.mod_mask);
@@ -141,6 +141,14 @@ SimonCipher.prototype.encrypt = function (plaintext) {
     this.iv_upper = b;
     this.iv_lower = a;
     this.iv = b.shl(this.word_size).or(a)
+  } else if (this.mode === 'PCBC') {
+	  old_a = a;
+	  old_b = b;
+	  b = b.xor(this.iv_upper);
+	  a = a.xor(this.iv_lower);
+	  [ b, a ] = this.encrypt_function(b, a);
+	  this.iv_upper = old_b.xor(b);
+	  this.iv_lower = old_a.xor(a);
   }
   return b.shl(this.word_size).or(a);
 };
@@ -195,6 +203,14 @@ SimonCipher.prototype.decrypt = function (ciphertext) {
     this.iv_upper = old_b;
     this.iv_lower = old_a;
     this.iv = old_b.shl(this.word_size).or(old_a)
+  } else if (this.mode === 'PCBC') {
+	  old_a = a;
+	  old_b = b;
+	  [ a, b ] = this.decrypt_function(a, b);
+	  b = b.xor(this.iv_upper);
+	  a = a.xor(this.iv_lower);
+	  this.iv_upper = old_b.xor(b);
+	  this.iv_lower = old_a.xor(a);
   }
   return b.shl(this.word_size).or(a);
 };

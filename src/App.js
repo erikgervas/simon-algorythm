@@ -105,6 +105,7 @@ export class App extends Component {
               >
                 <FormControlLabel value="ECB" control={ <Radio/> } label="ECB"/>
                 <FormControlLabel value="CBC" control={ <Radio/> } label="CBC"/>
+                <FormControlLabel value="PCBC" control={ <Radio/> } label="PCBC"/>
               </RadioGroup>
             </FormControl>
           </div>
